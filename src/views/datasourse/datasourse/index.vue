@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" label-width="68px">
-      <el-form-item label="${comment}" prop="dataSourseUrl">
+      <el-form-item label-width="170px" label="请输入数据库连接地址" prop="dataSourseUrl">
         <el-input
           v-model="queryParams.dataSourseUrl"
           placeholder="请输入数据库连接地址"
@@ -10,19 +10,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="${comment}" prop="dataSourseName">
+      <el-form-item label-width="170px" label="请输入数据库用户名" prop="dataSourseName">
         <el-input
           v-model="queryParams.dataSourseName"
           placeholder="请输入数据库用户名"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="${comment}" prop="dataSoursePassword">
-        <el-input
-          v-model="queryParams.dataSoursePassword"
-          placeholder="请输入数据库密码"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -64,25 +55,22 @@
           v-hasPermi="['system:datasourse:remove']"
         >删除</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['system:datasourse:export']"
-        >导出</el-button>
-      </el-col>
     </el-row>
 
     <el-table v-loading="loading" :data="datasourseList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="${comment}" align="center" prop="id" />
-      <el-table-column label="${comment}" align="center" prop="dataSourseUrl" />
-      <el-table-column label="${comment}" align="center" prop="dataSourseName" />
-      <el-table-column label="${comment}" align="center" prop="dataSoursePassword" />
+      <el-table-column label="连接url" align="center" prop="dataSourseUrl" />
+      <el-table-column label="连接驱动" align="center" prop="dataSourseDriver" />
+      <el-table-column label="连接用户名" align="center" prop="dataSourseName" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
+        <el-button
+                    size="mini"
+                    type="text"
+                    icon="el-icon-edit"
+                    @click="handleTestJdbc(scope.row)"
+                  >测试连接
+          </el-button>
           <el-button
             size="mini"
             type="text"
@@ -110,16 +98,19 @@
     />
 
     <!-- 添加或修改【请填写功能名称】对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px">
+    <el-dialog :title="title" :visible.sync="open" width="520px">
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="${comment}" prop="dataSourseUrl">
-          <el-input v-model="form.dataSourseUrl" placeholder="请输入${comment}" />
+        <el-form-item label="连接url" prop="dataSourseUrl">
+          <el-input v-model="form.dataSourseUrl" placeholder="请输入连接url" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="dataSourseName">
-          <el-input v-model="form.dataSourseName" placeholder="请输入${comment}" />
+         <el-form-item label="连接驱动" prop="dataSourseDriver">
+            <el-input v-model="form.dataSourseDriver" placeholder="请输入连接驱动" />
+          </el-form-item>
+        <el-form-item label="连接用户名" prop="dataSourseName">
+          <el-input v-model="form.dataSourseName" placeholder="请输入连接用户名" />
         </el-form-item>
-        <el-form-item label="${comment}" prop="dataSoursePassword">
-          <el-input v-model="form.dataSoursePassword" placeholder="请输入${comment}" />
+        <el-form-item label="连接密码" prop="dataSoursePassword">
+          <el-input v-model="form.dataSoursePassword" placeholder="请输入连接密码" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -131,7 +122,7 @@
 </template>
 
 <script>
-import { listDatasourse, getDatasourse, delDatasourse, addDatasourse, updateDatasourse, exportDatasourse } from "@/api/datasourse/datasourse";
+import { listDatasourse, getDatasourse, delDatasourse, addDatasourse, updateDatasourse, exportDatasourse,testDatasourse } from "@/api/datasourse/datasourse";
 
 export default {
   name: "Datasourse",
@@ -270,19 +261,19 @@ export default {
           this.msgSuccess("删除成功");
         }).catch(function() {});
     },
-    /** 导出按钮操作 */
-    handleExport() {
-      const queryParams = this.queryParams;
-      this.$confirm('是否确认导出所有【请填写功能名称】数据项?', "警告", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }).then(function() {
-          return exportDatasourse(queryParams);
-        }).then(response => {
-          this.download(response.msg);
-        }).catch(function() {});
-    }
+    /** 测试连接 */
+    handleTestJdbc(row) {
+      const id = row.id || this.ids;
+
+       testDatasourse(id).then(response => {
+          if (response.code === 200) {
+            this.msgSuccess(response.msg);
+          } else {
+            this.msgError(response.msg);
+          }
+        });
+
+    },
   }
 };
 </script>

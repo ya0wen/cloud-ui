@@ -43,6 +43,14 @@ export function delDatasourse(id) {
   })
 }
 
+// 删除【请填写功能名称】
+export function testDatasourse(id) {
+  return request({
+    url: '/datasourse/datasourse/test-jdbc/' + id,
+    method: 'post'
+  })
+}
+
 // 导出【请填写功能名称】
 export function exportDatasourse(query) {
   return request({
